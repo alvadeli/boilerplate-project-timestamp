@@ -24,33 +24,34 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.get("/api/:date?", (req, res) => {
-  let date = req.params.date
-  const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
+  let dateInput = req.params.date
   const unixFomat = /^\d+$/ 
   let date_unix = 0;
-  let date_yyyymmdd = "";
+  let date_GMT = "";
 
-  let currentDateSet = false;
-  if (!date)
+  if (!dateInput)
   {
-    date = new Date().toGMTString();
-    currentDateSet = true;
-  }
-
-  if (dateFormat.test(date) || currentDateSet)
-  {
-    date_yyyymmdd = date;
-    date_unix = Date.parse(date)/1000;
-  } else if (unixFomat.test(date)) {
-    date_unix = parseInt(date);
-    date_yyyymmdd = new Date(parseInt(date_unix)).toGMTString();
-  }
-  else {
-    res.json({error: "Invalid Date"});
+    date_GMT = new Date().toGMTString();
+    date_unix = Date.parse(date_GMT);
+    res.json({unix: date_unix, utc: date_GMT});
     return;
   }
 
-  res.json({unix: date_unix, utc: date_yyyymmdd});
+  if (unixFomat.test(dateInput)) {
+    date_unix = parseInt(dateInput);
+    date_GMT = new Date(date_unix).toGMTString();
+    res.json({unix: date_unix, utc: date_GMT})
+    return;
+  }
+
+  let date = new Date(dateInput)
+
+  if (isNaN(date.getTime())){
+    res.json({error: "Invalid Date"});
+    return; 
+  }
+
+  res.json({unix: Date.parse(dateInput), utc: date.toGMTString()});
 });
 
 
